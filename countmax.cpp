@@ -7,10 +7,9 @@
 
 int main()
 {
-    std::istream_iterator<int> in_first(std::cin);
-    std::istream_iterator<int> in_last{};
-    std::vector<int> ns;
-    std::copy(in_first, in_last, std::back_inserter(ns));
+    std::vector<int> ns(
+            std::istream_iterator<int>{std::cin},
+            std::istream_iterator<int>{});
     auto max { std::max_element(ns.begin(), ns.end()) };
     std::cout << std::count(ns.begin(), ns.end(), *max) << '\n';
 }
