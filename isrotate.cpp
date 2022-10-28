@@ -24,15 +24,27 @@ Shift by 5
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <sstream>
+#include <string_view>
+#include <optional>
 
 std::vector<int> parse(const std::string& line)
 {
-    std::vector<int> out;
     std::istringstream in{line};
-    std::copy(std::istream_iterator<int>(in),
-            std::istream_iterator<int>(),
-            std::back_inserter(out));
+    //Avoid the most vexing parse...
+    auto out{std::vector<int>(
+            std::istream_iterator<int>(in),
+            std::istream_iterator<int>())};
     return out;
+}
+
+std::optional<std::vector<int>> ask_for_array(std::string_view prompt)
+{
+    std::cout << prompt << std::flush;
+    std::string line;
+    std::getline(std::cin, line);
+    if (not std::cin) return std::nullopt;
+    return parse(line);
 }
 
 int main()
@@ -40,36 +52,34 @@ int main()
     //We'll skip asking the length. We won't need it.
 
     while (true) {
-        std::cout << "\nFirst array: " << std::flush;
-        std::string line;
-        std::getline(std::cin, line);
-        if (not std::cin) break;
-        std::vector<int> one { parse(line) };
-        std::cout << "Second array: " << std::flush;
-        std::getline(std::cin, line);
-        if (not std::cin) break;
-        std::vector<int> two { parse(line) };
-        if (one.size() != two.size()) {
+        auto one{ask_for_array("\nFirst array: ")};
+        if (not one) break;
+        auto two{ask_for_array("Second array: ")};
+        if (not two) break;
+        if (one->size() != two->size()) {
             std::cout << "Not a shift!\n";
             continue;
         }
-        auto first = two.begin();
+        auto first = two->begin();
         while (true) {
-            first = std::find(first, two.end(), one.front());
-            if (two.end() == first) {
+            first = std::find(first, two->end(), one->front());
+            if (two->end() == first) {
                 std::cout << "Not a shift!\n";
                 break;		
             }
-            bool end_equal { std::equal(first, two.end(), one.begin()) };
-            auto end_size { std::distance(first, two.end()) };
-            auto skip { one.begin() += end_size };
-            bool start_equal { std::equal(two.begin(), first, skip) };
+            bool end_equal { std::equal(first, two->end(), one->begin()) };
+            auto end_size { std::distance(first, two->end()) };
+            auto skip { one->begin() += end_size };
+            bool start_equal { std::equal(two->begin(), first, skip) };
             if (end_equal and start_equal) {
-                std::cout << "Shift by " << std::distance(two.begin(), first) << '\n';
+                std::cout
+                    << "Shift by "
+                    << std::distance(two->begin(), first)
+                    << '\n';
                 break;
             }
             ++first;
-            if (two.end() == first) {
+            if (two->end() == first) {
                 std::cout << "Not a shift!\n";
                 break;		
             }
